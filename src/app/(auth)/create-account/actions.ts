@@ -4,6 +4,7 @@ import db from "@/app/lib/db";
 import getSession from "@/app/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import bcrypt from "bcrypt"
 
 const checkPasswords = ({
 	password,
@@ -75,12 +76,14 @@ export async function createAccount(prevState: any, formData: FormData) {
 	if (!result.success) {
 		console.log(result.error.flatten());
 		return result.error.flatten();
-	} else {
+    } else {
+        const hashedPassword = await bcrypt.hash(result.data.password, 12)
+
 		const user = await db.user.create({
 			data: {
 				username: result.data.username,
 				email: result.data.email,
-				password: result.data.password,
+				password: hashedPassword,
 			},
 			select: {
 				id: true,
