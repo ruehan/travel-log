@@ -23,4 +23,35 @@ model User {
   avatar String? @default("https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg/e3076f91-f06c-471c-2ae5-4204577c8400/public")
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  posts Post[]
+  comments Comment[]
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  content String
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  comments Comment[]
+  images Image[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Image {
+  id Int @id @default(autoincrement())
+  url String
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  text String
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
