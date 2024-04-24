@@ -6,6 +6,7 @@ export default function TabBar() {
 			<Link
 				href="/"
 				className="flex flex-col justify-center items-center gap-1"
+				scroll={false}
 			>
 				<img
 					className="w-[30px]"
@@ -16,6 +17,7 @@ export default function TabBar() {
 			<Link
 				href="/create-post"
 				className="flex flex-col justify-center items-center gap-1"
+				scroll={false}
 			>
 				<img
 					className="w-[30px]"
@@ -26,6 +28,7 @@ export default function TabBar() {
 			<Link
 				href="/chat"
 				className="flex flex-col justify-center items-center gap-1"
+				scroll={false}
 			>
 				<img
 					className="w-[30px]"
@@ -36,6 +39,7 @@ export default function TabBar() {
 			<Link
 				href="/profile"
 				className="flex flex-col justify-center items-center gap-1"
+				scroll={false}
 			>
 				<img
 					className="w-[30px]"
