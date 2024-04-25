@@ -1,17 +1,12 @@
 import db from "@/app/lib/db";
 import getSession from "@/app/lib/session";
 import { redirect } from "next/navigation";
-import moment from "moment";
 import { FaRegHeart as Heart } from "react-icons/fa";
 import { FaHeart as FillHeart } from "react-icons/fa";
 import { IoChatbubbleOutline as Bubble } from "react-icons/io5";
-
-function formatDate(date: any) {
-	const createdAt = moment(date);
-	const formattedDate = createdAt.format("YYYY년 MM월 DD일");
-
-	return formattedDate;
-}
+import { revalidatePath } from "next/cache";
+import { FaTrash as Delete } from "react-icons/fa";
+import { formatDate } from "../lib/utils";
 
 async function getUser() {
 	const session = await getSession();
@@ -72,6 +67,7 @@ async function Post() {
 				userId: session.id!,
 			},
 		});
+		revalidatePath("/");
 
 		db.$disconnect();
 	};
@@ -92,14 +88,24 @@ async function Post() {
 			},
 		});
 
+		revalidatePath("/");
+
 		db.$disconnect();
+	};
+
+	const clickPost = async (formData: FormData) => {
+		"use server";
+
+		const id = formData.get("id");
+
+		redirect(`/tweet/${id}`);
 	};
 
 	return (
 		<div className="w-[40%] h-screen pb-[80px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center  border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
 			{post.map((p) => (
 				<div className="w-full h-fit flex flex-col items-center mt-4">
-					<div className="flex items-center justify-start w-[90%] gap-4">
+					<div className="flex items-center justify-start w-[90%] gap-4 relative">
 						<div
 							className="size-[50px] border-2 border-[#786657] rounded-full "
 							style={{
@@ -111,9 +117,17 @@ async function Post() {
 							<div className="font-bold">{p.user.username}</div>
 							<div className="text-xs">{p.user.email}</div>
 						</div>
+						{p.userId === session.id && (
+							<button className="size-fit absolute right-5">
+								<Delete />
+							</button>
+						)}
 					</div>
 
-					<img src={p.images[0].url} className="w-[90%]  mt-4"></img>
+					{p.images[0].url !==
+						"https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg//public" && (
+						<img src={p.images[0].url} className="w-[90%]  mt-4"></img>
+					)}
 
 					<div className="flex w-[90%] mt-4 gap-2 items-center">
 						<form
@@ -130,9 +144,12 @@ async function Post() {
 							</button>
 						</form>
 						<div className="text-xs">{p.likes.length}</div>
-						<div className="ml-4">
-							<Bubble />
-						</div>
+						<form action={clickPost} className="ml-4 flex items-center">
+							<input name="id" value={p.id} className="hidden" readOnly></input>
+							<button className="size-fit">
+								<Bubble />
+							</button>
+						</form>
 						<div className="text-xs">{p.comments.length}</div>
 					</div>
 

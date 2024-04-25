@@ -80,10 +80,15 @@ async function User() {
 async function Post() {
 	const post = await getPost();
 	return (
-		<div className="w-full h-fit grid grid-cols-3 mt-10 gap-2 p-2">
+		<div className="w-full h-fit min-h-[100px] grid grid-cols-3 mt-10 gap-2 p-2">
 			{post.map((p) => (
 				<div className="size-[100%] flex justify-center items-center bg-[#ddc8ae]">
-					<img src={p.images[0].url}></img>
+					{p.images[0].url !==
+					"https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg//public" ? (
+						<img src={p.images[0].url}></img>
+					) : (
+						<div className="text-xs">{p.content}</div>
+					)}
 				</div>
 			))}
 		</div>
