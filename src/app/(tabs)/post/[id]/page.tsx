@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { FaRegHeart as Heart } from "react-icons/fa";
 import { FaHeart as FillHeart } from "react-icons/fa";
 import { IoChatbubbleOutline as Bubble } from "react-icons/io5";
-
+import { FaTrash as Delete } from "react-icons/fa";
 async function getPost(id: number) {
 	const post = await db.post.findUnique({
 		where: {
@@ -94,6 +94,21 @@ export default async function PostDetail({
 		db.$disconnect();
 	};
 
+	const deleteComment = async (formData: FormData) => {
+		"use server";
+		const id = formData.get("id");
+		const postId = formData.get("postId");
+		console.log(id);
+
+		const comment = await db.comment.delete({
+			where: {
+				id: Number(id),
+			},
+		});
+
+		revalidatePath(`/post/${postId}`);
+	};
+
 	return (
 		<div className="w-[40%] h-screen pb-[80px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
 			<div className="w-full h-fit flex flex-col items-center mt-4">
@@ -150,9 +165,6 @@ export default async function PostDetail({
 
 				<div className="w-full h-[2px] bg-[#786657] mt-4"></div>
 
-				{/* {post?.comments.map((comment) => (
-					<p>{comment.text}</p>
-				))} */}
 				{comment?.map((comment) => (
 					<div className="w-full h-fit flex flex-col items-center mt-8">
 						<div className="flex items-center justify-start w-[90%] gap-4 relative">
@@ -169,6 +181,25 @@ export default async function PostDetail({
 									<div className="text-xs">
 										{formatDate(comment.created_at)}
 									</div>
+									{comment.user.id === session.id && (
+										<form action={deleteComment}>
+											<input
+												name="id"
+												value={comment.id}
+												className="hidden"
+												readOnly
+											></input>
+											<input
+												name="postId"
+												value={post?.id}
+												className="hidden"
+												readOnly
+											></input>
+											<button className="size-fit ">
+												<Delete />
+											</button>
+										</form>
+									)}
 								</div>
 								<div className="text-xs">{comment.text}</div>
 							</div>
