@@ -61,15 +61,18 @@ async function Post() {
 
 		const id = formData.get("id");
 
-		await db.like.create({
-			data: {
-				postId: Number(id),
-				userId: session.id!,
-			},
-		});
-		revalidatePath("/");
-
-		db.$disconnect();
+		try {
+			await db.like.create({
+				data: {
+					postId: Number(id),
+					userId: session.id!,
+				},
+			});
+			db.$disconnect();
+			revalidatePath("/");
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	const dislikePost = async (formData: FormData) => {
@@ -79,18 +82,20 @@ async function Post() {
 
 		const id = formData.get("id");
 
-		await db.like.delete({
-			where: {
-				id: {
-					postId: Number(id),
-					userId: session.id!,
+		try {
+			await db.like.delete({
+				where: {
+					id: {
+						postId: Number(id),
+						userId: session.id!,
+					},
 				},
-			},
-		});
-
-		revalidatePath("/");
-
-		db.$disconnect();
+			});
+			db.$disconnect();
+			revalidatePath("/");
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	const clickPost = async (formData: FormData) => {
@@ -111,7 +116,6 @@ async function Post() {
 				id: Number(id),
 			},
 		});
-
 
 		revalidatePath("/");
 	};
