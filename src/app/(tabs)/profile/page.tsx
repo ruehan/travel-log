@@ -50,32 +50,52 @@ async function getPost() {
 	return post;
 }
 
+async function logOut() {
+	"use server";
+	const session = await getSession();
+	session.destroy();
+	redirect("/");
+}
+
 async function User() {
 	const user = await getUser();
 	const follow = await getFollowing();
 
 	return (
-		<div className="flex justify-around w-full h-fit mt-4">
-			<div className="flex flex-col items-center justify-center">
-				<div className="font-bold text-lg">{user?.follow.length}</div>
-				<div className="text-xs">follower</div>
+		<>
+			<div className="flex justify-around w-full h-fit mt-8">
+				<div className="flex flex-col items-center justify-center">
+					<div className="font-bold text-lg">{user?.follow.length}</div>
+					<div className="text-xs">follower</div>
+				</div>
+				<div className="flex flex-col items-center justify-center">
+					<div
+						className="size-[100px] rounded-full"
+						style={{
+							backgroundImage: `url(${user?.avatar})`,
+							backgroundSize: "cover",
+						}}
+					></div>
+					<div className="font-bold text-lg">{user?.username}</div>
+					<div className="text-xs">{user?.email}</div>
+				</div>
+				<div className="flex flex-col items-center justify-center">
+					<div className="font-bold text-lg">{follow.length}</div>
+					<div className="text-xs">following</div>
+				</div>
 			</div>
-			<div className="flex flex-col items-center justify-center">
-				<div
-					className="size-[100px] rounded-full"
-					style={{
-						backgroundImage: `url(${user?.avatar})`,
-						backgroundSize: "cover",
-					}}
-				></div>
-				<div className="font-bold text-lg">{user?.username}</div>
-				<div className="text-xs">{user?.email}</div>
+			<div className="w-full h-fit flex justify-around mt-6">
+				<div className="w-[30%] border-2 border-[#786657] bg-[#ddc8ae] flex justify-center items-center py-2 rounded-xl">
+					프로필 수정 (예정)
+				</div>
+				<form
+					action={logOut}
+					className="w-[30%] border-2 border-[#786657] bg-[#ddc8ae] flex justify-center items-center py-2 rounded-xl"
+				>
+					<button>로그아웃</button>
+				</form>
 			</div>
-			<div className="flex flex-col items-center justify-center">
-				<div className="font-bold text-lg">{follow.length}</div>
-				<div className="text-xs">following</div>
-			</div>
-		</div>
+		</>
 	);
 }
 
@@ -83,7 +103,7 @@ async function Post() {
 	const post = await getPost();
 
 	return (
-		<div className="w-full h-fit min-h-[100px] grid grid-cols-3 mt-10 gap-2 p-2">
+		<div className="w-full h-fit min-h-[100px] grid grid-cols-3 mt-10 gap-2 p-2 ">
 			{post.map((p) => (
 				<Link
 					href={`/post/${p.id}`}
@@ -103,7 +123,7 @@ async function Post() {
 
 export default async function Profile() {
 	return (
-		<div className="w-[40%] h-screen pb-[80px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center  border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
+		<div className="w-[40%] h-screen pb-[700px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
 			<User />
 			<Post />
 		</div>
