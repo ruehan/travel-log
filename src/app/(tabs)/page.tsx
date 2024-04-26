@@ -98,7 +98,22 @@ async function Post() {
 
 		const id = formData.get("id");
 
-		redirect(`/tweet/${id}`);
+		redirect(`/post/${id}`);
+	};
+
+	const deletePost = async (formData: FormData) => {
+		"use server";
+		const id = formData.get("id");
+		console.log(id);
+
+		const post = await db.post.delete({
+			where: {
+				id: Number(id),
+			},
+		});
+
+
+		revalidatePath("/");
 	};
 
 	return (
@@ -118,9 +133,17 @@ async function Post() {
 							<div className="text-xs">{p.user.email}</div>
 						</div>
 						{p.userId === session.id && (
-							<button className="size-fit absolute right-5">
-								<Delete />
-							</button>
+							<form action={deletePost}>
+								<input
+									name="id"
+									value={p.id}
+									className="hidden"
+									readOnly
+								></input>
+								<button className="size-fit absolute right-5">
+									<Delete />
+								</button>
+							</form>
 						)}
 					</div>
 
