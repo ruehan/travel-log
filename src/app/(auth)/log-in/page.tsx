@@ -9,7 +9,7 @@ export default function CreateAccount() {
 
 	return (
 		<div className="flex flex-col gap-10 py-8 px-6 items-center relative h-screen">
-			<div className="absolute top-20 w-fit h-fit flex flex-col justify-center items-center gap-4">
+			<div className="top-20 w-fit h-fit flex flex-col justify-center items-center gap-4">
 				<img
 					src="travelloglogo.png"
 					style={{ width: "80%", margin: "-100px" }}
@@ -18,7 +18,7 @@ export default function CreateAccount() {
 			</div>
 			<form
 				action={dispatch}
-				className="flex flex-col gap-3 absolute bottom-10 h-fit w-[20%] min-w-[200px] justify-center items-center"
+				className="flex flex-col gap-3  bottom-10 h-fit w-[20%] min-w-[200px] justify-center items-center"
 			>
 				<div className="flex flex-col gap-3 w-full">
 					<input
@@ -44,7 +44,10 @@ export default function CreateAccount() {
 					LogIn
 				</button>
 				<span>OR</span>
-				<button className="primary-btn  bg-[#dcc9ae] border-2 border-[#5a503f] text-[#5a503f] rounded-3xl p-2 w-full">
+				<button
+					disabled
+					className="primary-btn  bg-[#dcc9ae] border-2 border-[#5a503f] text-[#5a503f] rounded-3xl p-2 w-full"
+				>
 					Continue with Github
 				</button>
 			</form>
