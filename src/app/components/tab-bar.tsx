@@ -1,6 +1,8 @@
 import Link from "next/link";
+import getSession from "../lib/session";
 
-export default function TabBar() {
+export default async function TabBar() {
+	const session = await getSession();
 	return (
 		<div className="w-[80%] h-16 border-2 border-[#6d635b] bg-[#fffcf4] fixed bottom-0 left-[50%] translate-x-[-50%] flex justify-around items-center rounded-t-2xl">
 			<Link
@@ -25,7 +27,7 @@ export default function TabBar() {
 				></img>
 				<div className="text-sm">게시물 작성</div>
 			</Link>
-			<Link
+			{/* <Link
 				href="/chat"
 				className="flex flex-col justify-center items-center gap-1"
 				scroll={false}
@@ -35,9 +37,9 @@ export default function TabBar() {
 					src="https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg/7d4a018d-e18e-4488-fa71-2fbab036f100/public"
 				></img>
 				<div className="text-sm">채팅</div>
-			</Link>
+			</Link> */}
 			<Link
-				href="/profile"
+				href={`/profile/${session.id}`}
 				className="flex flex-col justify-center items-center gap-1"
 				scroll={false}
 			>
