@@ -7,6 +7,7 @@ import { IoChatbubbleOutline as Bubble } from "react-icons/io5";
 import { revalidatePath } from "next/cache";
 import { FaTrash as Delete } from "react-icons/fa";
 import { formatDate } from "../lib/utils";
+import Link from "next/link";
 
 async function getUser() {
 	const session = await getSession();
@@ -125,13 +126,14 @@ async function Post() {
 			{post.map((p) => (
 				<div className="w-full h-fit flex flex-col items-center mt-4">
 					<div className="flex items-center justify-start w-[90%] gap-4 relative">
-						<div
+						<Link
+							href={`/profile/${p.userId}`}
 							className="size-[50px] border-2 border-[#786657] rounded-full "
 							style={{
 								backgroundImage: `url(${p.user.avatar})`,
 								backgroundSize: "cover",
 							}}
-						></div>
+						></Link>
 						<div className="flex flex-col">
 							<div className="font-bold">{p.user.username}</div>
 							<div className="text-xs">{p.user.email}</div>
