@@ -56,6 +56,7 @@ export async function LogIn(prevdata: any, formData: FormData) {
 			const session = await getSession();
 			session.id = user!.id;
 			await session.save();
+			await db.$disconnect();
 			redirect("/");
 		} else {
 			return {

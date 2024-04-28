@@ -49,6 +49,7 @@ export async function createPost(_: any, formData: FormData) {
 					},
 				},
 			});
+			await db.$disconnect();
 			redirect("/");
 		}
 	}
@@ -65,6 +66,6 @@ export async function getUploadUrl() {
 		}
 	);
 	const data = await response.json();
-	console.log(data);
+	// console.log(data);
 	return data;
 }

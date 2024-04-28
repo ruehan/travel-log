@@ -4,7 +4,7 @@ import db from "@/app/lib/db";
 import getSession from "@/app/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 
 const checkPasswords = ({
 	password,
@@ -37,6 +37,7 @@ const formSchema = z
 				path: ["username"],
 				fatal: true,
 			});
+			await db.$disconnect();
 			return z.NEVER;
 		}
 	})
@@ -56,6 +57,7 @@ const formSchema = z
 				path: ["email"],
 				fatal: true,
 			});
+			await db.$disconnect();
 			return z.NEVER;
 		}
 	})
@@ -76,8 +78,8 @@ export async function createAccount(prevState: any, formData: FormData) {
 	if (!result.success) {
 		console.log(result.error.flatten());
 		return result.error.flatten();
-    } else {
-        const hashedPassword = await bcrypt.hash(result.data.password, 12)
+	} else {
+		const hashedPassword = await bcrypt.hash(result.data.password, 12);
 
 		const user = await db.user.create({
 			data: {
@@ -93,6 +95,7 @@ export async function createAccount(prevState: any, formData: FormData) {
 		const session = await getSession();
 		session.id = user.id;
 		await session.save();
+		await db.$disconnect();
 		redirect("/");
 	}
 }
