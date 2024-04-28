@@ -10,10 +10,11 @@ import {
 import Link from "next/link";
 import db from "@/app/lib/db";
 import { revalidatePath } from "next/cache";
+import Image from "next/image";
 
 function getIsFollow(follows: any, session_id: number, profile_id: number) {
 	var followed = false;
-	console.log(follows);
+	// console.log(follows);
 
 	if (follows.length === 0) {
 		return false;
@@ -65,7 +66,7 @@ async function User({ userId }: { userId: number }) {
 		const follow = data.filter(
 			(dt) => dt.follow === Number(profileId) && dt.userId === session.id!
 		);
-		console.log(follow);
+		// console.log(follow);
 		try {
 			await db.follow.delete({
 				where: {
@@ -82,10 +83,13 @@ async function User({ userId }: { userId: number }) {
 	return (
 		<>
 			<div className="flex justify-around w-full h-fit mt-8">
-				<div className="flex flex-col items-center justify-center">
+				<Link
+					href={`/follower/${user?.id}`}
+					className="flex flex-col items-center justify-center"
+				>
 					<div className="font-bold text-lg">{follower?.length}</div>
 					<div className="text-xs">follower</div>
-				</div>
+				</Link>
 				<div className="flex flex-col items-center justify-center">
 					<div
 						className="size-[100px] rounded-full"
@@ -97,10 +101,13 @@ async function User({ userId }: { userId: number }) {
 					<div className="font-bold text-lg">{user?.username}</div>
 					<div className="text-xs">{user?.email}</div>
 				</div>
-				<div className="flex flex-col items-center justify-center">
+				<Link
+					href={`/following/${user?.id}`}
+					className="flex flex-col items-center justify-center"
+				>
 					<div className="font-bold text-lg">{follow.length}</div>
 					<div className="text-xs">following</div>
-				</div>
+				</Link>
 			</div>
 			{session.id === user?.id ? (
 				<div className="w-full h-fit flex justify-around mt-6">
@@ -147,14 +154,23 @@ async function Post({ userId }: { userId: number }) {
 		<div className="w-full h-fit min-h-[100px] grid grid-cols-3 mt-10 gap-2 p-2 ">
 			{post.map((p) => (
 				<Link
+					key={p.id}
 					href={`/post/${p.id}`}
 					className="size-[100%] flex justify-center items-center bg-[#ddc8ae]"
 				>
 					{p.images[0].url !==
 					"https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg//public" ? (
-						<img src={p.images[0].url}></img>
+						<Image
+							src={p.images[0].url}
+							className="w-[100%]"
+							width={200}
+							height={200}
+							// fill
+							alt="Photo"
+							quality={100}
+						/>
 					) : (
-						<div className="text-xs">{p.content}</div>
+						<div className="text-xs flex justify-center">{p.content}</div>
 					)}
 				</Link>
 			))}

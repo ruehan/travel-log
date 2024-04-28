@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useFormState } from "react-dom";
 import { LogIn } from "./actions";
+import Image from "next/image";
 
 export default function CreateAccount() {
 	const [state, dispatch] = useFormState(LogIn, null);
@@ -10,10 +11,12 @@ export default function CreateAccount() {
 	return (
 		<div className="flex flex-col gap-10 py-8 px-6 items-center relative h-screen">
 			<div className="top-20 w-fit h-fit flex flex-col justify-center items-center gap-4">
-				<img
-					src="travelloglogo.png"
-					style={{ width: "80%", margin: "-100px" }}
-				></img>
+				<Image
+					src="https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg/4b73fe3b-f640-4626-6f7e-d4425e7e6100/public"
+					width={300}
+					height={300}
+					alt="Logo"
+				/>
 				<div className="text-5xl font-bold mt-[-10px]">TRAVEL LOG</div>
 			</div>
 			<form

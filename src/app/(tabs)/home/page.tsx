@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { FaTrash as Delete } from "react-icons/fa";
 import { formatDate } from "../../lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 async function getUser() {
 	const session = await getSession();
@@ -124,7 +125,10 @@ async function Post() {
 	return (
 		<div className="w-[40%] h-screen pb-[80px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center  border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
 			{post.map((p) => (
-				<div className="w-full h-fit flex flex-col items-center mt-4">
+				<div
+					key={p.id}
+					className="w-full h-fit flex flex-col items-center mt-4"
+				>
 					<div className="flex items-center justify-start w-[90%] gap-4 relative">
 						<Link
 							href={`/profile/${p.userId}`}
@@ -155,7 +159,14 @@ async function Post() {
 
 					{p.images[0].url !==
 						"https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg//public" && (
-						<img src={p.images[0].url} className="w-[90%]  mt-4"></img>
+						<Image
+							src={p.images[0].url}
+							className="w-[90%] mt-4"
+							width={200}
+							height={200}
+							alt="Photo"
+							quality={100}
+						/>
 					)}
 
 					<div className="flex w-[90%] mt-4 gap-2 items-center">

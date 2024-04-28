@@ -40,6 +40,7 @@ export default async function Following({
 			<div className="w-full flex flex-col items-start h-fit gap-4">
 				{user?.map((u) => (
 					<Link
+						key={u.id}
 						href={`/profile/${u.id}`}
 						className="flex items-center justify-center w-fit gap-4 relative border-2 border-[#786657] px-4 py-2 bg-[#fffcf4] rounded-xl"
 					>

@@ -6,6 +6,7 @@ import { FaRegHeart as Heart } from "react-icons/fa";
 import { FaHeart as FillHeart } from "react-icons/fa";
 import { IoChatbubbleOutline as Bubble } from "react-icons/io5";
 import { FaTrash as Delete } from "react-icons/fa";
+import Image from "next/image";
 
 async function getPost(id: number) {
 	const post = await db.post.findUnique({
@@ -168,7 +169,15 @@ export default async function PostDetail({
 					</div>
 					{post?.images[0].url !==
 						"https://imagedelivery.net/CJyrB-EkqcsF2D6ApJzEBg//public" && (
-						<img src={post?.images[0].url} className="w-[90%]  mt-4"></img>
+						// <img src={post?.images[0].url} className="w-[90%]  mt-4"></img>
+						<Image
+							src={post?.images[0].url!}
+							className="w-[90%] mt-4"
+							width={200}
+							height={200}
+							alt="Photo"
+							quality={100}
+						/>
 					)}
 					<div className="flex w-[90%] mt-4 gap-2 items-center">
 						<form
@@ -207,7 +216,10 @@ export default async function PostDetail({
 					<div className="w-full h-[2px] bg-[#786657] mt-4"></div>
 
 					{comment?.map((comment) => (
-						<div className="w-full h-fit flex flex-col items-center mt-8">
+						<div
+							key={comment.id}
+							className="w-full h-fit flex flex-col items-center mt-8"
+						>
 							<div className="flex items-center justify-start w-[90%] gap-4 relative">
 								<div
 									className="size-[40px] min-w-[40px] border-2 border-[#786657] rounded-full"
