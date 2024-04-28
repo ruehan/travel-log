@@ -2,7 +2,10 @@ export default function Loading() {
 	return (
 		<div className="w-[40%] animate-pulse  h-screen pb-[80px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center  border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5]">
 			{[...Array(3)].map((_, index) => (
-				<div className="w-full h-fit flex flex-col items-center mt-4 ">
+				<div
+					key={index}
+					className="w-full h-fit flex flex-col items-center mt-4 "
+				>
 					<div className="flex items-center justify-start w-[90%] gap-4">
 						<div className="size-[50px] border-2 border-[#786657] rounded-full  bg-neutral-700"></div>
 						<div className="flex flex-col gap-2">
