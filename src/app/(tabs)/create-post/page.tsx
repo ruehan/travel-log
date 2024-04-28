@@ -53,11 +53,11 @@ export default function CreatePost() {
 	return (
 		<form
 			action={dispatch}
-			className="p-5 flex flex-col gap-5 w-[50%] fixed left-[50%] translate-x-[-50%] h-fit items-center justify-center"
+			className="w-[40%] h-screen pb-[100px] flex flex-col fixed left-[50%] translate-x-[-50%] items-center p-4 border-x-2 border-[#786657] overflow-scroll bg-[#eee6d5] gap-4 pt-8"
 		>
 			<label
 				htmlFor="photo"
-				className="border-2 w-full aspect-square flex items-center justify-center flex-col text-neutral-300 border-neutral-300 rounded-md border-dashed cursor-pointer"
+				className="border-2 size-[100%] aspect-square flex items-center justify-center flex-col text-neutral-300 border-neutral-300 rounded-md border-dashed cursor-pointer"
 				style={{ backgroundImage: `url(${preview})`, backgroundSize: "cover" }}
 			>
 				{/* <PhotoIcon className="w-20" /> */}
