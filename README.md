@@ -31,4 +31,4 @@
 
 ## 배포
 
-- https://ruehan.com/home
+- https://ruehan-travel/home
