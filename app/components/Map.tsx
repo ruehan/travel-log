@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
+import { analyzeCoordinateClusters } from "~/utils/clustering";
 
-// CSS import를 위한 links 함수 추가가 필요합니다
 export const links = () => [{ rel: "stylesheet", href: "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" }];
 
 interface MapProps {
@@ -19,9 +19,17 @@ interface MapProps {
 	}[];
 }
 
+const REGION_COLORS = {
+	UK: "#51bbd6",
+	France: "#f1f075",
+	Germany: "#f28cb1",
+	unknown: "#666666",
+};
+
 export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 	const mapContainer = useRef<HTMLDivElement>(null);
 	const map = useRef<MapboxMap | null>(null);
+	const markersRef = useRef<mapboxgl.Marker[]>([]);
 
 	console.log(markers);
 
@@ -29,74 +37,113 @@ export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 		if (!mapContainer.current) return;
 
 		mapboxgl.accessToken = accessToken;
+		const validMarkers = markers?.filter((m) => m.coordinates) || [];
+		const coordinates = validMarkers.map((m) => m.coordinates!) as [number, number][];
 
-		// 지도 초기화
+		console.log("Initial coordinates:", coordinates);
+
 		map.current = new mapboxgl.Map({
 			container: mapContainer.current,
 			style: initialConfig?.style || "mapbox://styles/mapbox/streets-v12",
-			center: initialConfig?.center || [126.978, 37.5665], // 서울 좌표
+			center: initialConfig?.center || [126.978, 37.5665],
 			zoom: initialConfig?.zoom || 12,
 			localIdeographFontFamily: "'Noto Sans KR', sans-serif",
 		});
 
 		map.current.on("load", () => {
-			// 모든 레이블 레이어를 한글로 변경
-			const koreanLabelLayers = [
-				"country-label", // 국가명
-				"state-label", // 도/시 이름
-				"settlement-label", // 도시/마을 이름
-				"settlement-subdivision-label", // 구/동 이름
-				"poi-label", // 주요 시설물
-				"airport-label", // 공항
-				"natural-point-label", // 자연 지형
-				"water-point-label", // 수계 지형
-				"road-label", // 도로명
-				"waterway-label", // 수로명
-			];
+			console.log("Map loaded");
 
-			koreanLabelLayers.forEach((layerId) => {
-				if (map.current?.getLayer(layerId)) {
-					map.current?.setLayoutProperty(layerId, "text-field", ["coalesce", ["get", "name_ko"], ["get", "name"]]);
-				}
+			map.current?.addSource("clusters", {
+				type: "geojson",
+				data: {
+					type: "FeatureCollection",
+					features: [],
+				},
 			});
 
-			// 마커 추가
-			markers?.forEach((marker) => {
-				if (marker.coordinates) {
-					// 커스텀 마커 엘리먼트 생성
-					const el = document.createElement("div");
-					el.className = "custom-marker";
+			map.current?.addLayer({
+				id: "clusters",
+				type: "circle",
+				source: "clusters",
+				filter: ["has", "point_count"],
+				paint: {
+					"circle-color": ["case", ["==", ["get", "region"], "London"], "#51bbd6", "#666666"],
+					"circle-radius": ["step", ["get", "point_count"], 20, 5, 30, 10, 40],
+				},
+			});
 
-					// 이미지 엘리먼트 생성
-					const img = document.createElement("img");
-					img.src = `/img/${marker.filename}`;
-					img.style.width = "50px";
-					img.style.height = "50px";
-					img.style.borderRadius = "50%";
-					img.style.border = "3px solid white";
-					img.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
-					img.style.cursor = "pointer";
+			map.current?.addLayer({
+				id: "cluster-count",
+				type: "symbol",
+				source: "clusters",
+				filter: ["has", "point_count"],
+				layout: {
+					"text-field": "{point_count}",
+					"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+					"text-size": 14,
+				},
+				paint: {
+					"text-color": "#ffffff",
+				},
+			});
 
-					el.appendChild(img);
+			console.log("Starting initial cluster update");
+			const initialZoom = map.current.getZoom();
+			const initialClusters = analyzeCoordinateClusters(coordinates, initialZoom);
+			console.log("Initial clusters:", initialClusters);
 
-					// 마커 생성 및 추가
-					new mapboxgl.Marker(el)
-						.setLngLat(marker.coordinates)
-						.setPopup(
-							new mapboxgl.Popup({
-								offset: 25,
-							}).setHTML(`
-								<img src="/img/${marker.filename}" style="width: 200px; height: auto;" />
-								${marker.takenAt ? `<p>촬영일: ${new Date(marker.takenAt).toLocaleDateString()}</p>` : ""}
-							`)
-						)
-						.addTo(map.current!);
+			const source = map.current.getSource("clusters") as mapboxgl.GeoJSONSource;
+			if (source) {
+				const geojson = {
+					type: "FeatureCollection",
+					features: initialClusters.map((cluster) => ({
+						type: "Feature",
+						geometry: {
+							type: "Point",
+							coordinates: cluster.center,
+						},
+						properties: {
+							point_count: cluster.points.length,
+							region: cluster.region,
+						},
+					})),
+				};
+
+				console.log("Setting initial GeoJSON:", geojson);
+				source.setData(geojson as any);
+			}
+
+			// 줌 변경 이벤트 리스너
+			map.current.on("zoomend", () => {
+				const zoom = map.current?.getZoom() || 0;
+				console.log("Zoom changed:", zoom);
+
+				const clusters = analyzeCoordinateClusters(coordinates, zoom);
+				console.log("Updated clusters:", clusters);
+
+				const source = map.current?.getSource("clusters") as mapboxgl.GeoJSONSource;
+				if (source) {
+					source.setData({
+						type: "FeatureCollection",
+						features: clusters.map((cluster) => ({
+							type: "Feature",
+							geometry: {
+								type: "Point",
+								coordinates: cluster.center,
+							},
+							properties: {
+								point_count: cluster.points.length,
+								region: cluster.region,
+							},
+						})),
+					} as any);
 				}
 			});
 		});
 
 		// 컴포넌트 언마운트 시 지도 제거
 		return () => {
+			markersRef.current.forEach((marker) => marker.remove());
 			map.current?.remove();
 		};
 	}, [initialConfig, accessToken, markers]);
