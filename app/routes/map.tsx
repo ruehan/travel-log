@@ -26,8 +26,18 @@ export const loader: LoaderFunction = async () => {
 	return json({
 		mapboxToken: process.env.MAPBOX_ACCESS_TOKEN,
 		photos: photos.map((photo) => ({
-			lat: convertDMSToDD(photo.latitudeDegrees, photo.latitudeMinutes, photo.latitudeSeconds, photo.latitudeRef),
-			lng: convertDMSToDD(photo.longitudeDegrees, photo.longitudeMinutes, photo.longitudeSeconds, photo.longitudeRef),
+			lat: convertDMSToDD(
+				photo.latitudeDegrees,
+				photo.latitudeMinutes,
+				photo.latitudeSeconds,
+				photo.latitudeRef
+			),
+			lng: convertDMSToDD(
+				photo.longitudeDegrees,
+				photo.longitudeMinutes,
+				photo.longitudeSeconds,
+				photo.longitudeRef
+			),
 			title: photo.title,
 			imageUrl: photo.imageUrl,
 		})),

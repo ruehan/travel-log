@@ -3,7 +3,9 @@ import mapboxgl from "mapbox-gl";
 import type { Map as MapboxMap } from "mapbox-gl";
 import { analyzeCoordinateClusters } from "~/utils/clustering";
 
-export const links = () => [{ rel: "stylesheet", href: "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" }];
+export const links = () => [
+	{ rel: "stylesheet", href: "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" },
+];
 
 interface MapProps {
 	initialConfig?: {

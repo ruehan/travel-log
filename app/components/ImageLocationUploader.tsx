@@ -28,19 +28,35 @@ export default function ImageLocationUploader({ onLocationsUpdate }: ImageLocati
 			try {
 				for (const file of files) {
 					// EXIF 데이터 추출
-					const exifData = await exifr.parse(file, ["GPSLatitude", "GPSLongitude", "DateTimeOriginal", "GPSLatitudeRef", "GPSLongitudeRef"]);
+					const exifData = await exifr.parse(file, [
+						"GPSLatitude",
+						"GPSLongitude",
+						"DateTimeOriginal",
+						"GPSLatitudeRef",
+						"GPSLongitudeRef",
+					]);
 
 					if (!exifData?.GPSLatitude || !exifData?.GPSLongitude) {
-						console.log("위치 정보가 없는 사진:", file.name);
+						// console.log("위치 정보가 없는 사진:", file.name);
 						continue;
 					}
 
-					console.log("원본 EXIF 데이터:", exifData);
+					// console.log("원본 EXIF 데이터:", exifData);
 
 					// DMS를 십진수로 변환
-					const lat = convertDMSToDD(exifData.GPSLatitude[0], exifData.GPSLatitude[1], exifData.GPSLatitude[2], exifData.GPSLatitudeRef || "N");
+					const lat = convertDMSToDD(
+						exifData.GPSLatitude[0],
+						exifData.GPSLatitude[1],
+						exifData.GPSLatitude[2],
+						exifData.GPSLatitudeRef || "N"
+					);
 
-					const lng = convertDMSToDD(exifData.GPSLongitude[0], exifData.GPSLongitude[1], exifData.GPSLongitude[2], exifData.GPSLongitudeRef || "E");
+					const lng = convertDMSToDD(
+						exifData.GPSLongitude[0],
+						exifData.GPSLongitude[1],
+						exifData.GPSLongitude[2],
+						exifData.GPSLongitudeRef || "E"
+					);
 
 					// 파일을 URL로 변환
 					const imageUrl = URL.createObjectURL(file);
@@ -67,7 +83,14 @@ export default function ImageLocationUploader({ onLocationsUpdate }: ImageLocati
 
 	return (
 		<div className="mb-4">
-			<input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={isLoading} className="mb-2" />
+			<input
+				type="file"
+				accept="image/*"
+				multiple
+				onChange={handleImageUpload}
+				disabled={isLoading}
+				className="mb-2"
+			/>
 			{isLoading && <p className="text-blue-600">이미지 처리 중...</p>}
 			{error && <p className="text-red-600">{error}</p>}
 		</div>

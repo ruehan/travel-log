@@ -70,7 +70,12 @@ function getRegionForCoordinate(coord: [number, number]): string {
 	const [lon, lat] = coord;
 
 	for (const region of REGIONS) {
-		if (lat <= region.bounds.north && lat >= region.bounds.south && lon <= region.bounds.east && lon >= region.bounds.west) {
+		if (
+			lat <= region.bounds.north &&
+			lat >= region.bounds.south &&
+			lon <= region.bounds.east &&
+			lon >= region.bounds.west
+		) {
 			return region.name;
 		}
 	}
@@ -78,7 +83,9 @@ function getRegionForCoordinate(coord: [number, number]): string {
 	return `other-${lon.toFixed(3)}-${lat.toFixed(3)}`;
 }
 
-function groupCoordinatesByRegion(coordinates: [number, number][]): Map<string, [number, number][]> {
+function groupCoordinatesByRegion(
+	coordinates: [number, number][]
+): Map<string, [number, number][]> {
 	const groups = new Map<string, [number, number][]>();
 
 	coordinates.forEach((coord) => {
@@ -92,7 +99,10 @@ function groupCoordinatesByRegion(coordinates: [number, number][]): Map<string, 
 	return groups;
 }
 
-export function analyzeCoordinateClusters(coordinates: [number, number][], zoom: number): Cluster[] {
+export function analyzeCoordinateClusters(
+	coordinates: [number, number][],
+	zoom: number
+): Cluster[] {
 	if (coordinates.length === 0) return [];
 
 	console.log("Starting clustering with coordinates:", coordinates);
@@ -154,7 +164,11 @@ interface Cluster {
 	region: string;
 }
 
-function shouldMergeClusters(currentCluster: Cluster, targetCluster: Cluster, zoom: number): boolean {
+function shouldMergeClusters(
+	currentCluster: Cluster,
+	targetCluster: Cluster,
+	zoom: number
+): boolean {
 	if (currentCluster.region !== targetCluster.region) {
 		return false;
 	}
@@ -166,7 +180,8 @@ function shouldMergeClusters(currentCluster: Cluster, targetCluster: Cluster, zo
 
 	const maxDistance = Math.max(0.5, 10 * Math.pow(0.4, zoom / 4));
 
-	const pointsWeight = Math.log(currentCluster.points.length + targetCluster.points.length) / Math.log(2);
+	const pointsWeight =
+		Math.log(currentCluster.points.length + targetCluster.points.length) / Math.log(2);
 	const adjustedMaxDistance = maxDistance * (1 + pointsWeight * 0.5);
 
 	return distance < adjustedMaxDistance;
@@ -185,8 +200,10 @@ function mergeClusters(cluster1: Cluster, cluster2: Cluster): Cluster {
 	const newRadius = Math.max(
 		cluster1.radius,
 		cluster2.radius,
-		Math.sqrt(Math.pow(avgLon - cluster1.center[0], 2) + Math.pow(avgLat - cluster1.center[1], 2)) + cluster1.radius,
-		Math.sqrt(Math.pow(avgLon - cluster2.center[0], 2) + Math.pow(avgLat - cluster2.center[1], 2)) + cluster2.radius
+		Math.sqrt(Math.pow(avgLon - cluster1.center[0], 2) + Math.pow(avgLat - cluster1.center[1], 2)) +
+			cluster1.radius,
+		Math.sqrt(Math.pow(avgLon - cluster2.center[0], 2) + Math.pow(avgLat - cluster2.center[1], 2)) +
+			cluster2.radius
 	);
 
 	return {
