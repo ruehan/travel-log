@@ -19,11 +19,13 @@ interface MapProps {
 	}[];
 }
 
-const REGION_COLORS = {
-	UK: "#51bbd6",
-	France: "#f1f075",
-	Germany: "#f28cb1",
-	unknown: "#666666",
+const REGION_COLORS: { [key: string]: string } = {
+	London: "#51bbd6",
+	Barcelona: "#f28cb1",
+	Paris: "#f1f075",
+	"Disneyland Paris": "#ff69b4",
+	Dijon: "#9370db",
+	"Jungfrau Region": "#00b4ff", // 융프라우 지역은 하늘색 계열로 설정
 };
 
 export default function Map({ initialConfig, accessToken, markers }: MapProps) {
@@ -50,6 +52,75 @@ export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 			localIdeographFontFamily: "'Noto Sans KR', sans-serif",
 		});
 
+		const createMarkers = () => {
+			markersRef.current.forEach((marker) => marker.remove());
+			markersRef.current = [];
+
+			validMarkers.forEach((marker) => {
+				if (marker.coordinates) {
+					const el = document.createElement("div");
+					el.className = "custom-marker";
+
+					const img = document.createElement("img");
+					img.src = `/img/${marker.filename}`;
+					img.style.width = "50px";
+					img.style.height = "50px";
+					img.style.borderRadius = "25px";
+					img.style.border = "2px solid white";
+					el.appendChild(img);
+
+					const newMarker = new mapboxgl.Marker(el).setLngLat(marker.coordinates).setPopup(
+						new mapboxgl.Popup({
+							offset: 25,
+						}).setHTML(`
+								<img src="/img/${marker.filename}" style="width: 200px; height: auto;" />
+								${marker.takenAt ? `<p>촬영일: ${new Date(marker.takenAt).toLocaleDateString()}</p>` : ""}
+							`)
+					);
+
+					markersRef.current.push(newMarker);
+				}
+			});
+		};
+
+		const updateDisplay = () => {
+			if (!map.current) return;
+
+			const zoom = map.current.getZoom();
+			console.log("Current zoom:", zoom);
+
+			if (zoom >= 8) {
+				map.current.setLayoutProperty("clusters", "visibility", "none");
+				map.current.setLayoutProperty("cluster-count", "visibility", "none");
+
+				markersRef.current.forEach((marker) => marker.addTo(map.current!));
+			} else {
+				map.current.setLayoutProperty("clusters", "visibility", "visible");
+				map.current.setLayoutProperty("cluster-count", "visibility", "visible");
+
+				markersRef.current.forEach((marker) => marker.remove());
+
+				const clusters = analyzeCoordinateClusters(coordinates, zoom);
+				const source = map.current.getSource("clusters") as mapboxgl.GeoJSONSource;
+				if (source) {
+					source.setData({
+						type: "FeatureCollection",
+						features: clusters.map((cluster) => ({
+							type: "Feature",
+							geometry: {
+								type: "Point",
+								coordinates: cluster.center,
+							},
+							properties: {
+								point_count: cluster.points.length,
+								region: cluster.region,
+							},
+						})),
+					} as any);
+				}
+			}
+		};
+
 		map.current.on("load", () => {
 			console.log("Map loaded");
 
@@ -67,8 +138,23 @@ export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 				source: "clusters",
 				filter: ["has", "point_count"],
 				paint: {
-					"circle-color": ["case", ["==", ["get", "region"], "London"], "#51bbd6", "#666666"],
-					"circle-radius": ["step", ["get", "point_count"], 20, 5, 30, 10, 40],
+					"circle-color": [
+						"case",
+						["==", ["get", "region"], "London"],
+						"#51bbd6",
+						["==", ["get", "region"], "Barcelona"],
+						"#f28cb1",
+						["==", ["get", "region"], "Paris"],
+						"#f1f075",
+						["==", ["get", "region"], "Disneyland Paris"],
+						"#ff69b4",
+						["==", ["get", "region"], "Dijon"],
+						"#9370db",
+						["==", ["get", "region"], "Jungfrau Region"],
+						"#00b4ff",
+						"#666666",
+					],
+					"circle-radius": 25,
 				},
 			});
 
@@ -87,58 +173,11 @@ export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 				},
 			});
 
-			console.log("Starting initial cluster update");
-			const initialZoom = map.current.getZoom();
-			const initialClusters = analyzeCoordinateClusters(coordinates, initialZoom);
-			console.log("Initial clusters:", initialClusters);
+			createMarkers();
 
-			const source = map.current.getSource("clusters") as mapboxgl.GeoJSONSource;
-			if (source) {
-				const geojson = {
-					type: "FeatureCollection",
-					features: initialClusters.map((cluster) => ({
-						type: "Feature",
-						geometry: {
-							type: "Point",
-							coordinates: cluster.center,
-						},
-						properties: {
-							point_count: cluster.points.length,
-							region: cluster.region,
-						},
-					})),
-				};
+			updateDisplay();
 
-				console.log("Setting initial GeoJSON:", geojson);
-				source.setData(geojson as any);
-			}
-
-			// 줌 변경 이벤트 리스너
-			map.current.on("zoomend", () => {
-				const zoom = map.current?.getZoom() || 0;
-				console.log("Zoom changed:", zoom);
-
-				const clusters = analyzeCoordinateClusters(coordinates, zoom);
-				console.log("Updated clusters:", clusters);
-
-				const source = map.current?.getSource("clusters") as mapboxgl.GeoJSONSource;
-				if (source) {
-					source.setData({
-						type: "FeatureCollection",
-						features: clusters.map((cluster) => ({
-							type: "Feature",
-							geometry: {
-								type: "Point",
-								coordinates: cluster.center,
-							},
-							properties: {
-								point_count: cluster.points.length,
-								region: cluster.region,
-							},
-						})),
-					} as any);
-				}
-			});
+			map.current.on("zoomend", updateDisplay);
 		});
 
 		// 컴포넌트 언마운트 시 지도 제거
@@ -152,19 +191,19 @@ export default function Map({ initialConfig, accessToken, markers }: MapProps) {
 		<>
 			<style>
 				{`
-					.custom-marker {
-						background: transparent;
-						cursor: pointer;
-					}
-					.custom-marker img:hover {
-						transform: scale(1.1);
-						transition: transform 0.2s;
-					}
-					.mapboxgl-popup-content {
-						padding: 15px;
-						border-radius: 8px;
-					}
-				`}
+				.custom-marker {
+					background: transparent;
+					cursor: pointer;
+				}
+				.custom-marker img:hover {
+					transform: scale(1.1);
+					transition: transform 0.2s;
+				}
+				.mapboxgl-popup-content {
+					padding: 15px;
+					border-radius: 8px;
+				}
+			`}
 			</style>
 			<div ref={mapContainer} style={{ width: "100%", height: "100vh" }} />
 		</>

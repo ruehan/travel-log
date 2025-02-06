@@ -13,15 +13,59 @@ const REGIONS: GeoRegion[] = [
 	{
 		name: "London",
 		bounds: {
-			north: 51.6723, // 런던 광역권 북쪽 경계
-			south: 51.2867, // 런던 광역권 남쪽 경계
-			east: 0.334, // 런던 광역권 동쪽 경계
-			west: -0.5103, // 런던 광역권 서쪽 경계
+			north: 51.6723,
+			south: 51.2867,
+			east: 0.334,
+			west: -0.5103,
+		},
+	},
+	{
+		name: "Barcelona",
+		bounds: {
+			north: 41.49,
+			south: 41.32,
+			east: 2.23,
+			west: 2.07,
+		},
+	},
+	{
+		name: "Paris",
+		bounds: {
+			north: 48.9021,
+			south: 48.8156,
+			east: 2.4699,
+			west: 2.224,
+		},
+	},
+	{
+		name: "Disneyland Paris",
+		bounds: {
+			north: 48.88,
+			south: 48.86,
+			east: 3.79,
+			west: 2.77,
+		},
+	},
+	{
+		name: "Dijon",
+		bounds: {
+			north: 47.35,
+			south: 47.28,
+			east: 5.07,
+			west: 4.99,
+		},
+	},
+	{
+		name: "Jungfrau Region",
+		bounds: {
+			north: 46.7,
+			south: 46.5,
+			east: 8.2,
+			west: 7.7,
 		},
 	},
 ];
 
-// 좌표가 어느 지역에 속하는지 확인하는 함수
 function getRegionForCoordinate(coord: [number, number]): string {
 	const [lon, lat] = coord;
 
@@ -31,12 +75,9 @@ function getRegionForCoordinate(coord: [number, number]): string {
 		}
 	}
 
-	// 런던 이외 지역은 각각 다른 지역으로 처리
-	// 각 좌표를 고유한 지역으로 취급하여 클러스터링 방지
 	return `other-${lon.toFixed(3)}-${lat.toFixed(3)}`;
 }
 
-// 지역별로 좌표들을 그룹화하는 함수
 function groupCoordinatesByRegion(coordinates: [number, number][]): Map<string, [number, number][]> {
 	const groups = new Map<string, [number, number][]>();
 
@@ -51,20 +92,16 @@ function groupCoordinatesByRegion(coordinates: [number, number][]): Map<string, 
 	return groups;
 }
 
-// 수정된 메인 클러스터링 함수
 export function analyzeCoordinateClusters(coordinates: [number, number][], zoom: number): Cluster[] {
 	if (coordinates.length === 0) return [];
 
-	// 디버깅을 위한 로그
 	console.log("Starting clustering with coordinates:", coordinates);
 
-	// 지역별로 좌표 그룹화
 	const regionGroups = groupCoordinatesByRegion(coordinates);
 	console.log("Region groups:", regionGroups);
 
 	let allClusters: Cluster[] = [];
 
-	// 각 지역별로 별도 클러스터링 수행
 	regionGroups.forEach((regionCoordinates, regionName) => {
 		console.log(`Processing region: ${regionName} with ${regionCoordinates.length} points`);
 
@@ -75,7 +112,6 @@ export function analyzeCoordinateClusters(coordinates: [number, number][], zoom:
 			region: regionName,
 		}));
 
-		// 같은 지역 내에서만 클러스터 병합
 		let merged = true;
 		while (merged) {
 			merged = false;
@@ -111,7 +147,6 @@ export function analyzeCoordinateClusters(coordinates: [number, number][], zoom:
 	return allClusters;
 }
 
-// 클러스터 타입에 지역 정보 추가
 interface Cluster {
 	center: [number, number];
 	points: [number, number][];
@@ -119,9 +154,7 @@ interface Cluster {
 	region: string;
 }
 
-// 두 클러스터를 병합해야 하는지 판단하는 함수
 function shouldMergeClusters(currentCluster: Cluster, targetCluster: Cluster, zoom: number): boolean {
-	// 같은 지역인지 확인
 	if (currentCluster.region !== targetCluster.region) {
 		return false;
 	}
@@ -129,24 +162,19 @@ function shouldMergeClusters(currentCluster: Cluster, targetCluster: Cluster, zo
 	const [lon1, lat1] = currentCluster.center;
 	const [lon2, lat2] = targetCluster.center;
 
-	// 두 클러스터 간의 거리 계산
 	const distance = Math.sqrt(Math.pow(lon2 - lon1, 2) + Math.pow(lat2 - lat1, 2));
 
-	// 줌 레벨에 따른 최대 병합 거리 계산
 	const maxDistance = Math.max(0.5, 10 * Math.pow(0.4, zoom / 4));
 
-	// 포인트 수에 따른 가중치 적용
 	const pointsWeight = Math.log(currentCluster.points.length + targetCluster.points.length) / Math.log(2);
 	const adjustedMaxDistance = maxDistance * (1 + pointsWeight * 0.5);
 
 	return distance < adjustedMaxDistance;
 }
 
-// 두 클러스터를 병합하는 함수
 function mergeClusters(cluster1: Cluster, cluster2: Cluster): Cluster {
 	const allPoints = [...cluster1.points, ...cluster2.points];
 
-	// 포인트 수에 따른 가중 평균으로 새로운 중심점 계산
 	const weight1 = cluster1.points.length;
 	const weight2 = cluster2.points.length;
 	const totalWeight = weight1 + weight2;
@@ -154,7 +182,6 @@ function mergeClusters(cluster1: Cluster, cluster2: Cluster): Cluster {
 	const avgLon = (cluster1.center[0] * weight1 + cluster2.center[0] * weight2) / totalWeight;
 	const avgLat = (cluster1.center[1] * weight1 + cluster2.center[1] * weight2) / totalWeight;
 
-	// 새로운 반경 계산 (두 클러스터를 포함할 수 있는 최소 반경)
 	const newRadius = Math.max(
 		cluster1.radius,
 		cluster2.radius,
@@ -166,6 +193,6 @@ function mergeClusters(cluster1: Cluster, cluster2: Cluster): Cluster {
 		center: [avgLon, avgLat],
 		points: allPoints,
 		radius: newRadius,
-		region: cluster1.region, // 지역 정보 유지
+		region: cluster1.region,
 	};
 }
